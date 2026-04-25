@@ -18,19 +18,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
       - name: Build project
-        run: |
-          if [ -f pom.xml ]; then
-            mvn clean install
-          elif [ -f build.gradle ]; then
-            chmod +x gradlew
-            ./gradlew build
-          else
-            echo "No Maven or Gradle project found"
-          fi
+        run: find . -name "*.java" -exec javac {} +
