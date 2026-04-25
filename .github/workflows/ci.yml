@@ -63,7 +63,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
-        run: docker build -t app:test rbpo/.
+        run: |
+          cp rbpo/target/*.jar .
+          docker build -t app:test .
       - name: Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
