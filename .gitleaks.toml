@@ -1,0 +1,4 @@
+[allowlist]
+  description = "Global allow list"
+  paths = []
+  
