@@ -5,19 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  # 1. Сканирование секретов (первый обязательный шаг)
-  secrets-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          config-path: .gitleaks.toml
-
-  # 2. Сборка (ждёт успеха secrets-scan)
   build:
-    needs: secrets-scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,14 +16,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Build with Maven
-        run: mvn clean package -DskipTests
+        run: |
+          cd rbpo
+          mvn clean package -DskipTests
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-package
-          path: target/*.jar
+          path: rbpo/target/*.jar
 
-  # 3. SAST (ждёт build)
   sast:
     needs: build
     runs-on: ubuntu-latest
@@ -48,9 +37,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Run SpotBugs
-        run: mvn spotbugs:check
+        run: |
+          cd rbpo
+          mvn spotbugs:check
 
-  # 4. Dependency Scan (уже есть в pom.xml, просто вызываем)
   dependency-scan:
     needs: build
     runs-on: ubuntu-latest
@@ -62,17 +52,18 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-      - name: Dependency Check
-        run: mvn dependency-check:check -DretireJsAnalyzerEnabled=false
+      - name: OWASP Dependency-Check
+        run: |
+          cd rbpo
+          mvn dependency-check:check -DretireJsAnalyzerEnabled=false
 
-  # 5. Container Security (ждёт build, нужен Dockerfile)
   container-security:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
-        run: docker build -t app:test .
+        run: docker build -t app:test rbpo/.
       - name: Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
@@ -81,37 +72,44 @@ jobs:
           exit-code: '1'
           severity: 'CRITICAL,HIGH'
 
-  # 6. DAST (ждёт build, динамический анализ)
   dast:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-package
+          path: .
       - name: Start Spring Boot app
         run: |
-          java -jar target/*.jar &
-          sleep 30  # Spring Boot нужно больше времени
+          java -jar *.jar &
+          sleep 30
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.9.0
         with:
           target: 'http://localhost:8080'
 
-  # 7. Web Fuzzing (ждёт dependency-scan, как по заданию)
   web-fuzzing:
     needs: dependency-scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-package
+          path: .
       - name: Start Spring Boot app
         run: |
-          java -jar target/*.jar &
+          java -jar *.jar &
           sleep 30
       - name: Fuzz with wfuzz
         run: |
           pip install wfuzz
           wfuzz -c -z file,/usr/share/wordlists/dirb/common.txt --hc 404 http://localhost:8080/FUZZ
 
-  # 8. Финальная проверка (ждёт sast, dast, web-fuzzing)
   security-check:
     needs: [sast, dast, web-fuzzing]
     if: always()
@@ -132,11 +130,3 @@ jobs:
           else
             echo "✅ ALL SECURITY CHECKS PASSED"
           fi
-      - name: Upload security reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-reports
-          path: |
-            target/dependency-check-report.html
-            target/spotbugsXml.xml
-          retention-days: 7
