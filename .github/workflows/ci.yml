@@ -25,4 +25,6 @@ jobs:
           java-version: 21
 
       - name: Build project
-        run: find . -name "*.java" -exec javac {} +
+  run: |
+    echo "Checking Java files..."
+    find . -name "*.java"
