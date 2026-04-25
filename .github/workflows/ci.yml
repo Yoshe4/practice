@@ -68,7 +68,9 @@ jobs:
           name: app-package
           path: .
       - name: Build Docker image
-        run: docker build -t app:test .
+        run: |
+          ls -la
+          docker build -f Dockerfile -t app:test .
       - name: Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
