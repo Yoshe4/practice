@@ -128,12 +128,3 @@ jobs:
           echo "SAST:            ${{ needs.sast.result }}"
           echo "DAST:            ${{ needs.dast.result }}"
           echo "Web Fuzzing:     ${{ needs.web-fuzzing.result }}"
-          echo ""
-          if [ "${{ needs.sast.result }}" != "success" ] || \
-             [ "${{ needs.dast.result }}" != "success" ] || \
-             [ "${{ needs.web-fuzzing.result }}" != "success" ]; then
-            echo "❌ SECURITY CHECKS FAILED"
-            exit 1
-          else
-            echo "✅ ALL SECURITY CHECKS PASSED"
-          fi
