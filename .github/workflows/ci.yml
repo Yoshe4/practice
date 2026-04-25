@@ -1,0 +1,36 @@
+name: Java CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: rbpo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build project
+        run: |
+          if [ -f pom.xml ]; then
+            mvn clean install
+          elif [ -f build.gradle ]; then
+            chmod +x gradlew
+            ./gradlew build
+          else
+            echo "No Maven or Gradle project found"
+          fi
