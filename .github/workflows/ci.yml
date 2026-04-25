@@ -62,7 +62,10 @@ jobs:
           dependency-check-${{ runner.os }}-
 
     - name: OWASP Dependency-Check
-      run: mvn dependency-check:check -DretireJsAnalyzerEnabled=false -DdataDirectory=$HOME/.dependency-check
+      run: |
+          cd rbpo
+          mvn dependency-check:check -DretireJsAnalyzerEnabled=false -DdataDirectory=$HOME/.dependency-check
+          
   container-security:
     needs: build
     runs-on: ubuntu-latest
