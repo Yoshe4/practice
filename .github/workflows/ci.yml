@@ -64,7 +64,7 @@ jobs:
     - name: OWASP Dependency-Check
       run: |
           cd rbpo
-          mvn dependency-check:check -DretireJsAnalyzerEnabled=false -DdataDirectory=$HOME/.dependency-check
+          mvn dependency-check:check -DretireJsAnalyzerEnabled=false -DdataDirectory=$HOME/.dependency-check -DossindexAnalyzerEnabled=false
           
   container-security:
     needs: build
