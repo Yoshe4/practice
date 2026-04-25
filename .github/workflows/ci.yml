@@ -5,8 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    needs: []
+    build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,12 +16,14 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Build with Maven
-        run: mvn clean package -DskipTests
+        run: |
+          cd rbpo
+          mvn clean package -DskipTests
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-package
-          path: target/*.jar
+          path: rbpo/target/*.jar
 
   sast:
     needs: build
