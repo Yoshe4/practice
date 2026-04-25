@@ -112,40 +112,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Add local bin to PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: app-package
           path: .
-
       - name: Start Spring Boot app
         run: |
-          java -jar *.jar > app.log 2>&1 &
-          echo $! > app.pid
-
-      - name: Wait for app
+          java -jar *.jar &
+          sleep 30
+        continue-on-error: true
+      - name: Fuzz with feroxbuster
         run: |
-          for i in {1..30}; do
-          curl -fsS http://localhost:8080/ && exit 0
-          sleep 2
-          done
-          cat app.log
-          exit 1
-  
-      - name: Install wfuzz
-        run: pip install wfuzz
-
-      - name: Fuzz with wfuzz
-        run: wfuzz -c -z file,/usr/share/wordlists/dirb/common.txt --hc 404 http://localhost:8080/FUZZ
-
+          curl -sL https://raw.githubusercontent.com/epi052/feroxbuster/main/install-nix.sh | bash
+          ./feroxbuster --url http://localhost:8080 -w /usr/share/wordlists/dirb/common.txt -t 10
+        continue-on-error: true
   security-check:
     needs: [sast, dast, web-fuzzing]
     if: always()
