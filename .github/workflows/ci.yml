@@ -62,10 +62,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-package
+          path: .
       - name: Build Docker image
-        run: |
-          cp rbpo/target/*.jar .
-          docker build -t app:test .
+        run: docker build -t app:test .
       - name: Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
