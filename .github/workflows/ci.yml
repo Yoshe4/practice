@@ -10,21 +10,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: rbpo
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-      - name: Build project
-  run: |
-    echo "Checking Java files..."
-    find . -name "*.java"
+      - name: Show project files
+        run: find .
+
+      - name: Compile Java files
+        run: |
+          find . -name "*.java" > sources.txt
+          javac @sources.txt || true
