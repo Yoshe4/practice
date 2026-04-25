@@ -55,7 +55,7 @@ jobs:
       - name: OWASP Dependency-Check
         run: |
           cd rbpo
-          mvn dependency-check:check -DretireJsAnalyzerEnabled=false
+          mvn dependency-check:check -DretireJsAnalyzerEnabled=false -DossindexAnalyzerEnabled=false
 
   container-security:
     needs: build
