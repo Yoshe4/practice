@@ -103,8 +103,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: DAST — ZAP Baseline Scan (skipped)
-        run: echo "ZAP requires running app on port 8080 — skipped in CI"
+      - name: Start PostgreSQL
+        run: |
+          docker run -d --name postgres \
+            -e POSTGRES_DB=testdb \
+            -e POSTGRES_USER=test \
+            -e POSTGRES_PASSWORD=test \
+            -p 5432:5432 \
+            postgres:15-alpine
+          sleep 10
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-package
+          path: .
+      - name: Start Spring Boot app
+        run: |
+          java -jar *.jar --spring.datasource.url=jdbc:postgresql://localhost:5432/testdb --spring.datasource.username=test --spring.datasource.password=test &
+          sleep 30
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.9.0
+        with:
+          target: 'http://localhost:8080'
           
   web-fuzzing:
     needs: dependency-scan
