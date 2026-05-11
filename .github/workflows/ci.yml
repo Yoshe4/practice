@@ -74,7 +74,7 @@ jobs:
     - name: OWASP Dependency-Check
       run: |
           cd rbpo
-          mvn dependency-check:check -DretireJsAnalyzerEnabled=false -DossindexAnalyzerEnabled=false -DdataDirectory=$HOME/.dependency-check -DnvdApiKey=${{ secrets.NVD_API_KEY }}
+          mvn dependency-check:check -DretireJsAnalyzerEnabled=false -DossindexAnalyzerEnabled=false -DdataDirectory=$HOME/.dependency-check 
           
   container-security:
     needs: build
