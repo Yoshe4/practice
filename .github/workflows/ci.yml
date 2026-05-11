@@ -121,6 +121,12 @@ jobs:
         run: |
           java -jar *.jar --spring.datasource.url=jdbc:postgresql://localhost:5432/testdb --spring.datasource.username=test --spring.datasource.password=test &
           sleep 30
+      - name: Check if app is running
+        run: |
+          sleep 5
+          curl -v http://localhost:8080 || echo "App not running"
+          docker ps
+        continue-on-error: true
       - name: OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.9.0
         with:
