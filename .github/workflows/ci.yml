@@ -103,16 +103,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: DAST (Dynamic Analysis) — skipped (no running app)
-        run: echo "DAST requires a running application — skipping for educational pipeline"
- 
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-package
+          path: .
+      - name: Start Spring Boot app
+        run: |
+          java -jar *.jar &
+          sleep 30
+        continue-on-error: true
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.9.0
+        with:
+          target: 'http://localhost:8080'
+          
   web-fuzzing:
     needs: dependency-scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Web Fuzzing — skipped (no running app)
-        run: echo "Web fuzzing requires a running application — skipping for educational pipeline"
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-package
+          path: .
+      - name: Start Spring Boot app
+        run: |
+          java -jar *.jar &
+          sleep 30
+      - name: Fuzz with feroxbuster
+        run: |
+          curl -sL https://raw.githubusercontent.com/epi052/feroxbuster/main/install-nix.sh | bash
+          ./feroxbuster --url http://localhost:8080 -w /usr/share/wordlists/dirb/common.txt -t 10
         
   security-check:
     needs: [sast, dast, web-fuzzing]
