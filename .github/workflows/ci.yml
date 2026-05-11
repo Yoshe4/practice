@@ -67,7 +67,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.dependency-check
-        key: dependency-check-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
+        key: dependency-check-${{ runner.os }}-${{ hashFiles('**/pom.xml') }} 
         restore-keys: |
           dependency-check-${{ runner.os }}-
 
