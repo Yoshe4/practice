@@ -117,6 +117,11 @@ jobs:
         with:
           name: app-package
           path: .
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
       - name: Start Spring Boot app
         run: |
           java -jar *.jar --spring.datasource.url=jdbc:postgresql://localhost:5432/testdb --spring.datasource.username=test --spring.datasource.password=test &
